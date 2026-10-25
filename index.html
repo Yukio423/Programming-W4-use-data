@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UK Media Gender Pay Gap</title>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js" defer></script>
+  <script src="script.js" defer></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>UK Media Gender Pay Gap, 2025–2026</h1>
+  <p>Comparing 86 reporting employers in selected media activities.</p>
+  <section aria-label="Explore the data" class="explore">
+    <div class="controls">
+      <label>Search employer<input id="search" type="search" placeholder="e.g. Guardian or ITV"></label>
+      <label>Employer size<select id="size"><option value="">All sizes</option></select></label>
+      <label>Sort by<select id="sort">
+        <option value="name">Employer A–Z</option>
+        <option value="median-desc">Median gap: highest first</option>
+        <option value="median-asc">Median gap: lowest first</option>
+        <option value="mean-desc">Mean gap: highest first</option>
+        <option value="women-desc">Women in top quartile: highest first</option>
+      </select></label>
+      <button id="reset" type="button">Reset</button>
+    </div>
+    <p id="result-count" role="status"></p>
+    <p id="load-note" role="status"></p>
+  </section>
+  <section class="chart-panel" aria-labelledby="chart-title">
+    <div class="chart-heading">
+      <h2 id="chart-title">Hourly gender pay gap</h2>
+      <label>Chart measure<select id="measure">
+        <option value="DiffMedianHourlyPercent">Median hourly gap</option>
+        <option value="DiffMeanHourlyPercent">Mean hourly gap</option>
+      </select></label>
+    </div>
+    <p id="chart-note">The chart shows the first 15 employers in the current table order. Search, filter or sort to change the comparison.</p>
+    <p>Positive = women earn less; negative = women earn more. Hover over a bar for its exact value. The full figures are in the table below.</p>
+    <div class="chart-scroll"><div class="chart-container">
+      <canvas id="payGapChart" role="img" aria-label="Hourly pay gaps for the first 15 employers in the current table order; exact values are available in the table below."></canvas>
+    </div></div>
+    <p id="chart-status" role="status"></p>
+  </section>
+  <table id="dataTable">
+    <thead>
+      <tr>
+        <th>Employer</th>
+        <th>Mean Hourly Pay Gap (%)</th>
+        <th>Median Hourly Pay Gap (%)</th>
+        <th>Women in Top Pay Quartile (%)</th>
+        <th>Employer Size</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Static copy for opening this HTML directly; script.js refreshes it from CSV on a web server. -->
+      <tr>
+        <td>AMAZON DIGITAL UK LIMITED</td>
+        <td>5.6</td>
+        <td>8.5</td>
+        <td>54.7</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>ARQIVA LIMITED</td>
+        <td>6.1</td>
+        <td>7.3</td>
+        <td>23</td>
+        <td>1000 to 4999</td>
+      </tr>
+      <tr>
+        <td>ARTICULATED PRODUCTIONS LIMITED</td>
+        <td>4.9</td>
+        <td>-1.8</td>
+        <td>52.2</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>ASSOCIATED NEWSPAPERS LIMITED</td>
+        <td>15.5</td>
+        <td>17.5</td>
+        <td>34.7</td>
+        <td>1000 to 4999</td>
+      </tr>
+      <tr>
+        <td>AUTO TRADER LIMITED</td>
+        <td>8.4</td>
+        <td>13.2</td>
+        <td>34.6</td>
+        <td>1000 to 4999</td>
+      </tr>
+      <tr>
+        <td>BANIJAY UK PRODUCTIONS LIMITED</td>
+        <td>4</td>
+        <td>16</td>
+        <td>51</td>
+        <td>1000 to 4999</td>
+      </tr>
+      <tr>
+        <td>BBC STUDIOS DISTRIBUTION LIMITED</td>
+        <td>13.6</td>
+        <td>10.7</td>
+        <td>47.2</td>
+        <td>1000 to 4999</td>
+      </tr>
+      <tr>
+        <td>BBC STUDIOS PRODUCTIONS LIMITED</td>
+        <td>7.2</td>
+        <td>6.2</td>
+        <td>63.2</td>
+        <td>1000 to 4999</td>
+      </tr>
+      <tr>
+        <td>BFBS</td>
+        <td>5.3</td>
+        <td>5.9</td>
+        <td>27</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>BLUE ZOO PRODUCTIONS LIMITED</td>
+        <td>5.8</td>
+        <td>5.32</td>
+        <td>38.89</td>
+        <td>Less than 250</td>
+      </tr>
+      <tr>
+        <td>CABLE NEWS INTERNATIONAL LIMITED</td>
+        <td>-4.1</td>
+        <td>16.7</td>
+        <td>37.3</td>
+        <td>Less than 250</td>
+      </tr>
+      <tr>
+        <td>CALCUTTA PRODUCTIONS UK LTD</td>
+        <td>31.9</td>
+        <td>20.2</td>
+        <td>16</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>CARWOW LTD</td>
+        <td>5</td>
+        <td>7</td>
+        <td>29</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>Channel Four Television Corporation</td>
+        <td>14.1</td>
+        <td>27.3</td>
+        <td>50</td>
+        <td>1000 to 4999</td>
+      </tr>
+      <tr>
+        <td>CINEWORLD CINEMAS LIMITED</td>
+        <td>5.11</td>
+        <td>0.85</td>
+        <td>41.3</td>
+        <td>1000 to 4999</td>
+      </tr>
+      <tr>
+        <td>COLUMBIA PICTURES CORPORATION LIMITED</td>
+        <td>18.8</td>
+        <td>23.3</td>
+        <td>48</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>CROSS PLAINS PRODUCTIONS LIMITED</td>
+        <td>8</td>
+        <td>7.3</td>
+        <td>37.3</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>D.C. THOMSON &amp; COMPANY LIMITED</td>
+        <td>13.63</td>
+        <td>14.53</td>
+        <td>39</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>DELUXE MEDIA EUROPE LTD</td>
+        <td>-6.1</td>
+        <td>3.7</td>
+        <td>34.4</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>DISCOVERY CORPORATE SERVICES LIMITED</td>
+        <td>-1.1</td>
+        <td>-0.9</td>
+        <td>41.8</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>DOUBLE NEGATIVE LIMITED</td>
+        <td>27</td>
+        <td>28</td>
+        <td>19</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>DRP (UK) LIMITED</td>
+        <td>11.80</td>
+        <td>5.47</td>
+        <td>40.48</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>ECONOMIST NEWSPAPER LIMITED(THE)</td>
+        <td>13.8</td>
+        <td>17.2</td>
+        <td>38.5</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>EVERYMAN MEDIA LIMITED</td>
+        <td>9.1</td>
+        <td>0.1</td>
+        <td>43</td>
+        <td>1000 to 4999</td>
+      </tr>
+      <tr>
+        <td>FASTMARKETS GLOBAL LIMITED</td>
+        <td>18.8</td>
+        <td>16.9</td>
+        <td>36</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>FFILM CYMRU WALES C.B.C</td>
+        <td>16</td>
+        <td>-3</td>
+        <td>50</td>
+        <td>Less than 250</td>
+      </tr>
+      <tr>
+        <td>FINANCIAL TIMES LIMITED(THE)</td>
+        <td>10.92</td>
+        <td>11.66</td>
+        <td>48.49</td>
+        <td>1000 to 4999</td>
+      </tr>
+      <tr>
+        <td>FOR ALL TIME PRODUCTIONS UK LIMITED</td>
+        <td>25.0</td>
+        <td>23.6</td>
+        <td>16</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>FORMULA ONE MANAGEMENT LIMITED</td>
+        <td>25.37</td>
+        <td>18.32</td>
+        <td>29.53</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>FRAMESTORE LIMITED(THE)</td>
+        <td>20.7</td>
+        <td>30.8</td>
+        <td>22</td>
+        <td>1000 to 4999</td>
+      </tr>
+      <tr>
+        <td>GUARDIAN NEWS &amp; MEDIA LIMITED</td>
+        <td>2.7</td>
+        <td>6.8</td>
+        <td>43</td>
+        <td>1000 to 4999</td>
+      </tr>
+      <tr>
+        <td>HARBOR LIGHTS ENTERTAINMENT (UK) LIMITED</td>
+        <td>9.34</td>
+        <td>0.00</td>
+        <td>36.84</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>HAYMARKET MEDIA GROUP LTD.</td>
+        <td>19.6</td>
+        <td>13.2</td>
+        <td>40.9</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>IMG MEDIA LIMITED</td>
+        <td>15.5</td>
+        <td>1.4</td>
+        <td>31.1</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>INDEPENDENT TELEVISION NEWS LIMITED</td>
+        <td>8.2</td>
+        <td>14.1</td>
+        <td>43</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>INDUSTRIAL LIGHT &amp; MAGIC (UK) LTD.</td>
+        <td>21.8</td>
+        <td>23.1</td>
+        <td>17</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>INFORMA UK LIMITED</td>
+        <td>12.0</td>
+        <td>17.6</td>
+        <td>54.4</td>
+        <td>1000 to 4999</td>
+      </tr>
+      <tr>
+        <td>ITV BREAKFAST LIMITED</td>
+        <td>-3.2</td>
+        <td>0.5</td>
+        <td>55.8</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>ITV BROADCASTING LIMITED</td>
+        <td>14.1</td>
+        <td>6.8</td>
+        <td>47.1</td>
+        <td>1000 to 4999</td>
+      </tr>
+      <tr>
+        <td>ITV STUDIOS LIMITED</td>
+        <td>8.5</td>
+        <td>2.8</td>
+        <td>57.0</td>
+        <td>1000 to 4999</td>
+      </tr>
+      <tr>
+        <td>JOHN WILEY &amp; SONS LIMITED</td>
+        <td>14.4</td>
+        <td>15.5</td>
+        <td>50.9</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>LCA PICTURES LIMITED</td>
+        <td>5.3</td>
+        <td>4.0</td>
+        <td>44.3</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>LIME PICTURES LIMITED</td>
+        <td>12</td>
+        <td>3</td>
+        <td>45</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>LITTLE DOT STUDIOS LIMITED</td>
+        <td>4.30</td>
+        <td>-1.02</td>
+        <td>44.3</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>MACMILLAN PUBLISHERS INTERNATIONAL LIMITED</td>
+        <td>-17</td>
+        <td>-31</td>
+        <td>71</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>NATIONAL MAGAZINE COMPANY LIMITED(THE)</td>
+        <td>14.8</td>
+        <td>16.8</td>
+        <td>72</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>NETFLIX STUDIOS UK LIMITED</td>
+        <td>1.6</td>
+        <td>24.4</td>
+        <td>58</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>NEWS GROUP NEWSPAPERS LIMITED</td>
+        <td>24.9</td>
+        <td>16.4</td>
+        <td>28.2</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>NEWSPRINTERS HOLDINGS LIMITED</td>
+        <td>4.4</td>
+        <td>24.7</td>
+        <td>5.2</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>NEWSQUEST MEDIA GROUP LIMITED</td>
+        <td>6.40</td>
+        <td>5.40</td>
+        <td>47</td>
+        <td>1000 to 4999</td>
+      </tr>
+      <tr>
+        <td>ODEON CINEMAS LIMITED</td>
+        <td>8.6</td>
+        <td>0</td>
+        <td>45</td>
+        <td>1000 to 4999</td>
+      </tr>
+      <tr>
+        <td>PHARMA INTELLIGENCE U.K. LIMITED</td>
+        <td>24</td>
+        <td>25</td>
+        <td>37</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>PHONOGRAPHIC PERFORMANCE LIMITED</td>
+        <td>8</td>
+        <td>22.9</td>
+        <td>33.9</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>PICTUREHOUSE CINEMAS LIMITED</td>
+        <td>1.36</td>
+        <td>-0.03</td>
+        <td>44.2</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>QVC UK</td>
+        <td>14.3</td>
+        <td>12.7</td>
+        <td>50</td>
+        <td>1000 to 4999</td>
+      </tr>
+      <tr>
+        <td>RED BEE MEDIA LIMITED</td>
+        <td>14.8</td>
+        <td>13</td>
+        <td>18</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>REEL CINEMAS LIMITED</td>
+        <td>3.8</td>
+        <td>0</td>
+        <td>40.3</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>REUTERS NEWS &amp; MEDIA LIMITED</td>
+        <td>15</td>
+        <td>13.7</td>
+        <td>36</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>ROBOT DOG PICTURES (UK) LIMITED</td>
+        <td>13.4</td>
+        <td>13.6</td>
+        <td>34</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>ROKU UK LIMITED</td>
+        <td>18.4</td>
+        <td>17.7</td>
+        <td>7.6</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>SAGE PUBLICATIONS LIMITED</td>
+        <td>19.5</td>
+        <td>20.9</td>
+        <td>47</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>SALVATION ARMY TRADING COMPANY LIMITED</td>
+        <td>12.8</td>
+        <td>5.9</td>
+        <td>45.9</td>
+        <td>1000 to 4999</td>
+      </tr>
+      <tr>
+        <td>SDTA PRODUCTIONS LIMITED</td>
+        <td>18</td>
+        <td>17</td>
+        <td>31</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>SKY CP LIMITED</td>
+        <td>11.7</td>
+        <td>12.3</td>
+        <td>18</td>
+        <td>1000 to 4999</td>
+      </tr>
+      <tr>
+        <td>SKY IN-HOME SERVICE LIMITED</td>
+        <td>10.2</td>
+        <td>13.9</td>
+        <td>5</td>
+        <td>1000 to 4999</td>
+      </tr>
+      <tr>
+        <td>SKY UK LIMITED</td>
+        <td>8.20</td>
+        <td>11.20</td>
+        <td>33</td>
+        <td>5000 to 19,999</td>
+      </tr>
+      <tr>
+        <td>SPORTS INFORMATION SERVICES LIMITED</td>
+        <td>-32.85</td>
+        <td>-21.38</td>
+        <td>21</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>SPOTLIGHT SPORTS GROUP LIMITED</td>
+        <td>11.65</td>
+        <td>15.13</td>
+        <td>13</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>SPRINGER NATURE LIMITED</td>
+        <td>17.34</td>
+        <td>9.17</td>
+        <td>47.80</td>
+        <td>1000 to 4999</td>
+      </tr>
+      <tr>
+        <td>STREAMLAND MEDIA UK LIMITED</td>
+        <td>13</td>
+        <td>16</td>
+        <td>26</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>TELEGRAPH MEDIA GROUP HOLDINGS LIMITED</td>
+        <td>15.5</td>
+        <td>11.9</td>
+        <td>42</td>
+        <td>1000 to 4999</td>
+      </tr>
+      <tr>
+        <td>TES GLOBAL LIMITED</td>
+        <td>20.9</td>
+        <td>22.2</td>
+        <td>34.2</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>TIMES MEDIA LIMITED</td>
+        <td>14.9</td>
+        <td>17.3</td>
+        <td>33.0</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>TULLO MARSHALL WARREN LIMITED</td>
+        <td>16.6</td>
+        <td>14</td>
+        <td>47</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>TURNER BROADCASTING SYSTEM EUROPE LIMITED</td>
+        <td>25.9</td>
+        <td>21.2</td>
+        <td>32.6</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>UKTV MEDIA LIMITED</td>
+        <td>12.7</td>
+        <td>17.6</td>
+        <td>49.4</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>UNITED CINEMAS INTERNATIONAL (UK) LIMITED</td>
+        <td>16.4</td>
+        <td>-0.7</td>
+        <td>44</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>VIACOM INTERNATIONAL MEDIA NETWORKS U.K. LIMITED</td>
+        <td>9</td>
+        <td>5.11</td>
+        <td>46</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>VUE ENTERTAINMENT LIMITED</td>
+        <td>2.7</td>
+        <td>0.0</td>
+        <td>41.2</td>
+        <td>1000 to 4999</td>
+      </tr>
+      <tr>
+        <td>WARNER BROS. ENTERTAINMENT UK LIMITED</td>
+        <td>17.4</td>
+        <td>17.8</td>
+        <td>47.7</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>WARNER BROS. STUDIOS LEAVESDEN LIMITED</td>
+        <td>19.4</td>
+        <td>9.7</td>
+        <td>40.6</td>
+        <td>500 to 999</td>
+      </tr>
+      <tr>
+        <td>WARNER MUSIC UK LIMITED</td>
+        <td>27</td>
+        <td>5.6</td>
+        <td>43</td>
+        <td>Less than 250</td>
+      </tr>
+      <tr>
+        <td>WHICH? LIMITED</td>
+        <td>15.6</td>
+        <td>10</td>
+        <td>29</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>WHISPER FILMS LIMITED</td>
+        <td>37.31</td>
+        <td>13.09</td>
+        <td>40.91</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>WILLIAM REED LTD</td>
+        <td>14.88</td>
+        <td>17.49</td>
+        <td>45.74</td>
+        <td>250 to 499</td>
+      </tr>
+      <tr>
+        <td>WIRELESS GROUP MEDIA (GB) LIMITED</td>
+        <td>4.2</td>
+        <td>9.6</td>
+        <td>23.0</td>
+        <td>Less than 250</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>Data from the supplied UK Gender Pay Gap Data - 2025 to 2026.csv.
+    <a href="media-pay-gap.csv">View the selected CSV</a>.</p>
+  <p>Positive pay gaps mean women earn less than men; negative gaps mean women earn more.
+    These employer-wide figures do not establish unequal pay for the same job.</p>
+  <p><a href="data/README.md">Read the selection notes</a>.</p>
+</body>
+</html>
